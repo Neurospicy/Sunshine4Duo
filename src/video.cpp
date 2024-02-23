@@ -1172,7 +1172,7 @@ namespace video {
         }
 
         if (switch_display_event->peek()) {
-          artificial_reinit = true;
+          //artificial_reinit = true;
           return false;
         }
 
@@ -1182,7 +1182,7 @@ namespace video {
       auto status = disp->capture(push_captured_image_callback, pull_free_image_callback, &display_cursor);
 
       if (artificial_reinit && status != platf::capture_e::error) {
-        status = platf::capture_e::reinit;
+        //status = platf::capture_e::reinit;
 
         artificial_reinit = false;
       }
@@ -2040,7 +2040,7 @@ namespace video {
         })
 
         if (switch_display_event->peek()) {
-          ec = platf::capture_e::reinit;
+          //ec = platf::capture_e::reinit;
           return false;
         }
 

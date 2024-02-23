@@ -16,6 +16,95 @@
 #include "src/video.h"
 
 namespace platf::dxgi {
+  float GetPrimaryMonitorScale(PRECT desktopRectangle);
+
+  /// <summary>
+  /// A monitor mode.
+  /// </summary>
+  typedef struct _RdpIddCaptureMode
+  {
+    /// <summary>
+    /// Whether this monitor is IddCx 1.9 based or not.
+    /// </summary>
+    BOOL IsIddCx19Based;
+
+    /// <summary>
+    /// The IddCx driver instance.
+    /// </summary>
+    LPVOID Instance;
+
+    /// <summary>
+    /// The IddCx adapter object.
+    /// </summary>
+    LPVOID AdapterObject;
+
+    /// <summary>
+    /// The IddCx monitor object.
+    /// </summary>
+    LPVOID MonitorObject;
+
+    /// <summary>
+    /// The width of the monitor in pixel.
+    /// </summary>
+    UINT Width;
+
+    /// <summary>
+    /// The height of the monitor in pixel.
+    /// </summary>
+    UINT Height;
+
+    /// <summary>
+    /// The refresh rate of the monitor in Hz.
+    /// </summary>
+    UINT RefreshRate;
+
+    /// <summary>
+    /// The scale factor of the monitor in percent.
+    /// </summary>
+    UINT ScaleFactor;
+
+    /// <summary>
+    /// The color mode of the monitor.
+    /// </summary>
+    BOOL HDR;
+  } __attribute__((packed, aligned(1))) RdpIddCaptureMode, * PRdpIddCaptureMode;
+
+  /// <summary>
+  /// The RdpIddCapture buffer.
+  /// </summary>
+  typedef struct _RdpIddCaptureBuffer
+  {
+    /// <summary>
+    /// The wudfhost.exe process ID.
+    /// </summary>
+    DWORD WUDFHostProcessId;
+
+    /// <summary>
+    /// The wudfhost.exe frame buffer handle.
+    /// </summary>
+    HANDLE WUDFHostFrameBufferHandle;
+
+    /// <summary>
+    /// The number of captured frames.
+    /// </summary>
+    UINT CapturedFrames;
+
+    /// <summary>
+    /// The number of encoded frames.
+    /// </summary>
+    UINT EncodedFrames;
+
+    /// <summary>
+    /// The monitor mode.
+    /// </summary>
+    RdpIddCaptureMode Mode;
+
+    /// <summary>
+    /// Whether a mode change is pending or not.
+    /// </summary>
+    BOOL ModeChangePending;
+  } __attribute__((packed, aligned(1))) RdpIddCaptureBuffer, * PRdpIddCaptureBuffer;
+
   extern const char *format_str[];
 
   // Add D3D11_CREATE_DEVICE_DEBUG here to enable the D3D11 debug runtime.
@@ -154,19 +243,25 @@ namespace platf::dxgi {
   };
 
   class duplication_t {
+  private:
+    HANDLE sharedBufferHandle {};
+    PRdpIddCaptureBuffer sharedBuffer {};
+    ID3D11Device* frameReaderDevice {};
+    HANDLE wudfFrameBufferHandle {};
+    HANDLE frameBufferHandle {};
+    ID3D11Texture2D* frameBufferTexture {};
+    D3D11_TEXTURE2D_DESC frameBufferTextureDescription {};
+    RdpIddCaptureMode mode {};
+    UINT encodedFrames {};
+    UINT RoundScaleFactor(UINT scaleFactor);
+    void map_shared_buffer(ID3D11Device* baseDevice);
   public:
-    dup_t dup;
-    bool has_frame {};
-    std::chrono::steady_clock::time_point last_protected_content_warning_time {};
-
-    capture_e
-    next_frame(DXGI_OUTDUPL_FRAME_INFO &frame_info, std::chrono::milliseconds timeout, resource_t::pointer *res_p);
-    capture_e
-    reset(dup_t::pointer dup_p = dup_t::pointer());
-    capture_e
-    release_frame();
-
-    ~duplication_t();
+    capture_e iddblt(ID3D11Device* baseDevice, ID3D11Resource** texture);
+    void resumeSwapChain();
+    bool test(IDXGIAdapter1* baseAdapter1);
+    bool test(ID3D11Device* baseDevice);
+    void reset();
+    void changeMode(const ::video::config_t &config);
   };
 
   class display_base_t: public display_t {

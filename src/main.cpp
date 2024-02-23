@@ -360,6 +360,7 @@ main(int argc, char *argv[]) {
   auto input_deinit_guard = input::init();
   if (video::probe_encoders()) {
     BOOST_LOG(error) << "Video failed to find working encoder"sv;
+    return -1;
   }
 
   if (http::init()) {
