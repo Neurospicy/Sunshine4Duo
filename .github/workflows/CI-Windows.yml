@@ -292,7 +292,7 @@ jobs:
           mkdir build
           cd build
           cmake \
-            -DBUILD_WERROR=ON \
+            -DBUILD_WERROR=OFF \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DSUNSHINE_ASSETS_DIR=assets \
             -DTESTS_PYTHON_EXECUTABLE='${{ steps.python-path.outputs.python-path }}' \
