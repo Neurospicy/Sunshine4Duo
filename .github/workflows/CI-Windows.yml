@@ -1,5 +1,5 @@
 ---
-name: CI
+name: CIWin
 
 on:
   pull_request:
